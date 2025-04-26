@@ -2,10 +2,12 @@ package com.imadh.financetracker.utils
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.imadh.financetracker.models.Budget
 import com.imadh.financetracker.models.Transaction
+import com.imadh.financetracker.notifications.NotificationHelper
 import java.util.*
 
 class SharedPreferencesManager(context: Context) {
@@ -23,6 +25,8 @@ class SharedPreferencesManager(context: Context) {
         PREFS_NAME, Context.MODE_PRIVATE
     )
 
+    private val notificationHelper = NotificationHelper(context)
+
     private val gson = Gson()
 
     // Transaction Methods
@@ -31,6 +35,7 @@ class SharedPreferencesManager(context: Context) {
         val transactions = getTransactions().toMutableList()
         transactions.add(transaction)
         saveTransactions(transactions)
+        checkBudgetLimit()
     }
 
     fun updateTransaction(updatedTransaction: Transaction) {
@@ -105,6 +110,40 @@ class SharedPreferencesManager(context: Context) {
 
     fun getCurrency(): String {
         return sharedPreferences.getString(KEY_CURRENCY, "USD") ?: "USD"
+    }
+
+    private fun checkBudgetLimit() {
+        Log.d("TransactionRepository", "checkBudgetLimit() called") // <-- 🔥
+        val calendar = java.util.Calendar.getInstance()
+        val month = calendar.get(java.util.Calendar.MONTH)
+        val year = calendar.get(java.util.Calendar.YEAR)
+
+        val budget = getCurrentMonthBudget()
+        val totalExpense = getTotalExpense(month, year)
+
+        if (budget != null) {
+            val percentSpent = budget.getPercentSpent(totalExpense)
+            Log.d("TransactionRepository", "Budget: ${budget.amount}, Total Expense: $totalExpense, Percent Spent: $percentSpent")
+
+            when {
+                percentSpent >= 100 -> {
+                    // Notify when budget exceeds 100%
+                    notificationHelper.sendNotification(
+                        "Budget Exceeded",
+                        "You have exceeded your budget for this month!",
+                        1001
+                    )
+                }
+                percentSpent >= 80 -> {
+                    // Notify when budget exceeds 80%
+                    notificationHelper.sendNotification(
+                        "Budget Alert",
+                        "You have used $percentSpent% of your budget. Be cautious with spending!",
+                        1002
+                    )
+                }
+            }
+        }
     }
 
     fun setBudgetNotifications(enabled: Boolean) {

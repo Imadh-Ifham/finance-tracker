@@ -57,6 +57,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.livedata)
     implementation(libs.gson)
     implementation(libs.mpandroidchart)
+    implementation("androidx.work:work-runtime-ktx:2.8.1")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

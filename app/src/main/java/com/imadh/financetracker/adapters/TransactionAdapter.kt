@@ -1,5 +1,6 @@
 package com.imadh.financetracker.adapters
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,6 +9,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.imadh.financetracker.R
 import com.imadh.financetracker.models.Transaction
+import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -17,6 +19,14 @@ class TransactionAdapter(
 ) : RecyclerView.Adapter<TransactionAdapter.TransactionViewHolder>() {
 
     private val dateFormatter = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+    private val currencyFormatter = NumberFormat.getCurrencyInstance()
+
+    private var onItemLongClickListener: ((Transaction) -> Unit)? = null
+
+    // Define listener for long press
+    fun setOnItemLongClickListener(listener: (Transaction) -> Unit) {
+        onItemLongClickListener = listener
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TransactionViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -36,6 +46,23 @@ class TransactionAdapter(
         notifyDataSetChanged()
     }
 
+    fun updateTransaction(updatedTransaction: Transaction) {
+        val index = transactions.indexOfFirst { it.id == updatedTransaction.id }
+        if (index != -1) {
+            transactions = transactions.toMutableList().apply { this[index] = updatedTransaction }
+            notifyItemChanged(index)
+        }
+    }
+
+    // Method to get a transaction by its position
+    fun getTransactionAt(position: Int): Transaction = transactions[position]
+
+    // Method to remove a transaction by its position
+    fun removeTransaction(position: Int) {
+        transactions = transactions.toMutableList().apply { removeAt(position) }
+        notifyItemRemoved(position)
+    }
+
     inner class TransactionViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val ivCategoryIcon: ImageView = itemView.findViewById(R.id.iv_category_icon)
         private val tvTransactionTitle: TextView = itemView.findViewById(R.id.tv_transaction_title)
@@ -44,36 +71,87 @@ class TransactionAdapter(
         private val tvTransactionAmount: TextView = itemView.findViewById(R.id.tv_transaction_amount)
 
         fun bind(transaction: Transaction) {
+            android.util.Log.d("TransactionAdapter", "Binding transaction: $transaction")
+
+            // Set title
+            android.util.Log.d("TransactionAdapter", "Setting title: ${transaction.title}")
             tvTransactionTitle.text = transaction.title
+
+            // Set category
+            android.util.Log.d("TransactionAdapter", "Setting category: ${transaction.category}")
             tvTransactionCategory.text = transaction.category
-            tvTransactionDate.text = dateFormatter.format(transaction.date)
 
-            // Format amount with currency
+            // Set formatted date
+            val formattedDate = dateFormatter.format(transaction.date)
+            android.util.Log.d("TransactionAdapter", "Formatted date: $formattedDate")
+            tvTransactionDate.text = formattedDate
+
+            // Format amount
+            android.util.Log.d("TransactionAdapter", "Formatting amount: ${transaction.amount}")
+            val formattedAmount = currencyFormatter.format(transaction.amount)
             val amountText = if (transaction.isExpense) {
-                "-$${transaction.amount}"
+                "-$formattedAmount"
             } else {
-                "+$${transaction.amount}"
+                "+$formattedAmount"
             }
-
+            android.util.Log.d("TransactionAdapter", "Formatted amount text: $amountText")
             tvTransactionAmount.text = amountText
 
             // Set text color based on transaction type
             val textColor = if (transaction.isExpense) {
-                itemView.context.getColor(R.color.expense_color) // Define this color in colors.xml
+                android.util.Log.d("TransactionAdapter", "Transaction is Expense, setting expense color")
+                itemView.context.getColor(R.color.expense_color) // Red for Expenses
             } else {
-                itemView.context.getColor(R.color.income_color) // Define this color in colors.xml
+                android.util.Log.d("TransactionAdapter", "Transaction is Income, setting income color")
+                itemView.context.getColor(R.color.income_color) // Green for Income
             }
             tvTransactionAmount.setTextColor(textColor)
 
-            // Set appropriate icon based on category (simplified version)
-            // You can add category-specific icons later
-            ivCategoryIcon.setImageResource(
-                if (transaction.isExpense) R.drawable.ic_swap else R.drawable.ic_swap
-            )
+            // Set category icon
+            val iconResId = getCategoryIcon(transaction.category, transaction.isExpense)
+            android.util.Log.d("TransactionAdapter", "Setting category icon for '${transaction.category}' with resource ID: $iconResId")
+            ivCategoryIcon.setImageResource(iconResId)
 
             // Set click listener
             itemView.setOnClickListener {
+                android.util.Log.d("TransactionAdapter", "Item clicked: ${transaction.title}")
                 onItemClick(transaction)
+            }
+
+            // Set long click listener
+            itemView.setOnLongClickListener {
+                android.util.Log.d("TransactionAdapter", "Item long clicked: ${transaction.title}")
+                onItemLongClickListener?.invoke(transaction)
+                true
+            }
+
+            android.util.Log.d("TransactionAdapter", "Finished binding transaction: ${transaction.title}")
+        }
+
+
+        // Get the appropriate icon for the transaction category
+        private fun getCategoryIcon(category: String, isExpense: Boolean): Int {
+            return when (category) {
+                // Expense Categories
+                "Food" -> R.drawable.ic_food
+                "Transport" -> R.drawable.ic_transport
+                "Entertainment" -> R.drawable.ic_entertainment
+                "Shopping" -> R.drawable.ic_shopping
+                "Bills" -> R.drawable.ic_bills
+                "Health" -> R.drawable.ic_health
+                "Education" -> R.drawable.ic_education
+                "Housing" -> R.drawable.ic_housing
+                "Travel" -> R.drawable.ic_travel
+
+                // Income Categories
+                "Salary" -> R.drawable.ic_salary
+                "Freelance" -> R.drawable.ic_freelance
+                "Business" -> R.drawable.ic_businness
+                "Investments" -> R.drawable.ic_investment
+                "Gift" -> R.drawable.ic_gifts
+
+                // Default Icon
+                else -> R.drawable.ic_swap
             }
         }
     }

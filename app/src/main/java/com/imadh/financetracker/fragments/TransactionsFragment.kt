@@ -5,12 +5,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.imadh.financetracker.R
 import com.imadh.financetracker.adapters.TransactionAdapter
 import com.imadh.financetracker.bottomsheets.AddTransactionBottomSheet
 import com.imadh.financetracker.databinding.FragmentTransactionsBinding
-import com.imadh.financetracker.models.Transaction
+import com.imadh.financetracker.dialogs.EditTransactionDialog
 import com.imadh.financetracker.utils.SharedPreferencesManager
 
 class TransactionsFragment : Fragment() {
@@ -36,13 +39,22 @@ class TransactionsFragment : Fragment() {
         // Initialize SharedPreferencesManager
         sharedPreferencesManager = SharedPreferencesManager(requireContext())
 
+        // Setup Toolbar
+        setupToolbar()
+
         // Setup RecyclerView
         setupTransactionsList()
+        setupSwipeToDelete()
+        setupLongPressToEdit()
 
         // Setup FAB
         binding.fabAddTransaction.setOnClickListener {
             showAddTransactionBottomSheet()
         }
+    }
+
+    private fun setupToolbar() {
+        binding.toolbar.title = getString(R.string.transactions)
     }
 
     private fun setupTransactionsList() {
@@ -85,6 +97,54 @@ class TransactionsFragment : Fragment() {
         }
 
         bottomSheet.show(parentFragmentManager, AddTransactionBottomSheet.TAG)
+    }
+
+    private fun setupSwipeToDelete() {
+        val itemTouchHelperCallback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean {
+                return false
+            }
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val position = viewHolder.adapterPosition
+                val transaction = transactionAdapter.getTransactionAt(position)
+
+                // Show confirmation dialog
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle("Delete Transaction")
+                    .setMessage("Are you sure you want to delete this transaction?")
+                    .setPositiveButton("Delete") { _, _ ->
+                        // Delete transaction
+                        sharedPreferencesManager.deleteTransaction(transaction.id)
+                        transactionAdapter.removeTransaction(position)
+                        updateEmptyState()
+                    }
+                    .setNegativeButton("Cancel") { _, _ ->
+                        // Cancel deletion and restore item
+                        transactionAdapter.notifyItemChanged(position)
+                    }
+                    .show()
+            }
+        }
+
+        val itemTouchHelper = ItemTouchHelper(itemTouchHelperCallback)
+        itemTouchHelper.attachToRecyclerView(binding.rvTransactions)
+    }
+
+    private fun setupLongPressToEdit() {
+        transactionAdapter.setOnItemLongClickListener { transaction ->
+            // Open the edit dialog
+            val editDialog = EditTransactionDialog.newInstance(transaction)
+            editDialog.setOnTransactionUpdatedListener { updatedTransaction ->
+                sharedPreferencesManager.updateTransaction(updatedTransaction)
+                transactionAdapter.updateTransaction(updatedTransaction)
+            }
+            editDialog.show(parentFragmentManager, EditTransactionDialog.TAG)
+        }
     }
 
     override fun onDestroyView() {

@@ -1,0 +1,21 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Wallet Shape -->
+    <path
+        android:fillColor="#FF888888"
+        android:pathData="M20,6h-1.586l-1.707-1.707C16.53,4.105 16.276,4 16,4H6C4.897,4 4,4.897 4,6v12c0,1.103 0.897,2 2,2h14c1.103,0 2-0.897 2-2V8C22,6.897 21.103,6 20,6zM6,6h9.586l1,1H6V6zM20,18H6V8h14v10z"/>
+
+    <!-- Small 'X' or Slash to show 'No transactions' -->
+    <path
+        android:fillColor="#FF888888"
+        android:pathData="M9,9l6,6M15,9l-6,6"
+        android:strokeColor="#FF888888"
+        android:strokeWidth="1.5"
+        android:fillAlpha="0"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+</vector>

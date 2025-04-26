@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">Finance Tracker</string>
+    <string name="transactions">Transactions</string>
     <string-array name="expense_categories">
         <item>Food</item>
         <item>Transport</item>
@@ -23,6 +24,7 @@
     </string-array>
 
     <string-array name="currencies">
+        <item>LKR (Rs.)</item>
         <item>USD ($)</item>
         <item>EUR (€)</item>
         <item>GBP (£)</item>

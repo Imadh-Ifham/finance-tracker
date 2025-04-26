@@ -9,7 +9,6 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.imadh.financetracker.R
 import com.imadh.financetracker.adapters.TransactionAdapter
 import com.imadh.financetracker.bottomsheets.AddTransactionBottomSheet
 import com.imadh.financetracker.databinding.FragmentTransactionsBinding
@@ -39,8 +38,6 @@ class TransactionsFragment : Fragment() {
         // Initialize SharedPreferencesManager
         sharedPreferencesManager = SharedPreferencesManager(requireContext())
 
-        // Setup Toolbar
-        setupToolbar()
 
         // Setup RecyclerView
         setupTransactionsList()
@@ -53,10 +50,6 @@ class TransactionsFragment : Fragment() {
         }
     }
 
-    private fun setupToolbar() {
-        binding.toolbar.title = getString(R.string.transactions)
-    }
-
     private fun setupTransactionsList() {
         transactionAdapter = TransactionAdapter(
             transactions = sharedPreferencesManager.getTransactions(),
@@ -64,7 +57,6 @@ class TransactionsFragment : Fragment() {
                 // Handle transaction item click if needed
             }
         )
-
         binding.rvTransactions.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = transactionAdapter
@@ -78,10 +70,8 @@ class TransactionsFragment : Fragment() {
         val transactions = sharedPreferencesManager.getTransactions()
         if (transactions.isEmpty()) {
             binding.rvTransactions.visibility = View.GONE
-            binding.emptyState.visibility = View.VISIBLE
         } else {
             binding.rvTransactions.visibility = View.VISIBLE
-            binding.emptyState.visibility = View.GONE
         }
     }
 

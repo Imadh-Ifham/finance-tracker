@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="80dp" >
+    android:paddingBottom="80dp">
 
     <!-- Toolbar -->
     <com.google.android.material.appbar.MaterialToolbar
@@ -20,12 +20,10 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_transactions"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="match_parent"
         android:layout_marginTop="?attr/actionBarSize"
-        android:layout_marginBottom="80dp"
         android:clipToPadding="false"
-        android:padding="8dp"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+        android:padding="24dp"/>
 
     <!-- Empty State View -->
     <LinearLayout
@@ -37,36 +35,31 @@
         android:visibility="gone">
 
         <ImageView
-            android:layout_width="160dp"
-            android:layout_height="160dp"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
             android:src="@drawable/ic_empty_state"
-            android:contentDescription="No transactions available"
-            android:alpha="0.7" />
+            android:contentDescription="No transactions" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="12dp"
             android:text="No transactions yet"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:textColor="?attr/colorOnBackground" />
+            android:textSize="18sp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Start tracking your expenses today!"
-            android:textSize="14sp"
-            android:textColor="?attr/colorOnBackground" />
+            android:text="Start tracking your expenses!"
+            android:textSize="14sp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_add_transaction"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:icon="@drawable/ic_add"
-            style="@style/Widget.Material3.Button" />
+            android:layout_marginTop="12dp"
+            android:text="Add Transaction" />
     </LinearLayout>
 
     <!-- Add Transaction FAB -->
@@ -77,8 +70,6 @@
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
         android:contentDescription="Add transaction"
-        app:srcCompat="@drawable/ic_add"
-        app:tint="@android:color/white"
-        app:layout_anchorGravity="end" />
+        app:srcCompat="@drawable/ic_add" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -59,31 +59,29 @@ class DashboardFragment : Fragment() {
     private fun loadDashboardData() {
         val transactions = sharedPreferencesManager.getTransactions()
 
+        // Fetch selected currency
+        val currency = sharedPreferencesManager.getCurrency()
+
         // Calculate income, expense, and cash in hand
         val income = transactions.filter { !it.isExpense }.sumOf { it.amount }
         val expense = transactions.filter { it.isExpense }.sumOf { it.amount }
         val cashInHand = income - expense
 
-        // Display income, expense, and cash in hand
-        binding.tvCashInHandValue.text = "$${cashInHand}"
-        binding.tvIncomeValue.text = "$${income}"
-        binding.tvExpenseValue.text = "$${expense}"
+        // Display income, expense, and cash in hand with selected currency
+        binding.tvCashInHandValue.text = "$currency$cashInHand"
+        binding.tvIncomeValue.text = "$currency$income"
+        binding.tvExpenseValue.text = "$currency$expense"
 
         // Populate charts
-        populateBarChart(transactions)
-        populatePieCharts(transactions)
+        populateBarChart(transactions, currency)
+        populatePieCharts(transactions, currency)
     }
 
-    private fun populateBarChart(transactions: List<Transaction>) {
+    private fun populateBarChart(transactions: List<Transaction>, currency: String) {
         // Get the current month and year
         val calendar = java.util.Calendar.getInstance()
         val currentMonth = calendar.get(java.util.Calendar.MONTH) + 1 // Months are 0-indexed
         val currentYear = calendar.get(java.util.Calendar.YEAR)
-
-        // Log all transactions for debugging
-        transactions.forEach { transaction ->
-            println("Transaction Date: ${transaction.date}, Amount: ${transaction.amount}, IsExpense: ${transaction.isExpense}")
-        }
 
         // Filter transactions for the current month
         val incomeForCurrentMonth = transactions.filter { transaction ->
@@ -100,23 +98,15 @@ class DashboardFragment : Fragment() {
             transaction.isExpense && transactionMonth == currentMonth && transactionYear == currentYear
         }.sumOf { it.amount }
 
-        // Log the filtered income and expense
-        println("Income for Current Month: $incomeForCurrentMonth")
-        println("Expense for Current Month: $expenseForCurrentMonth")
-
         // Create BarEntries for income and expense
         val barEntriesIncome = listOf(BarEntry(0f, incomeForCurrentMonth.toFloat())) // x = 0
         val barEntriesExpense = listOf(BarEntry(1f, expenseForCurrentMonth.toFloat())) // x = 1
 
-        // Log the BarEntries
-        println("BarEntries Income: $barEntriesIncome")
-        println("BarEntries Expense: $barEntriesExpense")
-
         // Create datasets
-        val incomeDataSet = BarDataSet(barEntriesIncome, "Income").apply {
+        val incomeDataSet = BarDataSet(barEntriesIncome, "Income ($currency)").apply {
             color = Color.GREEN
         }
-        val expenseDataSet = BarDataSet(barEntriesExpense, "Expense").apply {
+        val expenseDataSet = BarDataSet(barEntriesExpense, "Expense ($currency)").apply {
             color = Color.RED
         }
 
@@ -152,11 +142,11 @@ class DashboardFragment : Fragment() {
         barChart.invalidate() // Refresh chart
     }
 
-    private fun populatePieCharts(transactions: List<Transaction>) {
+    private fun populatePieCharts(transactions: List<Transaction>, currency: String) {
         // Expense Pie Chart
         val expenseEntries = transactions.filter { it.isExpense }
             .groupBy { it.category }
-            .map { PieEntry(it.value.sumOf { transaction -> transaction.amount }.toFloat(), it.key) }
+            .map { PieEntry(it.value.sumOf { transaction -> transaction.amount }.toFloat(), "${it.key} ($currency)") }
         val expenseDataSet = PieDataSet(expenseEntries, "Expenses by Category").apply {
             colors = listOf(Color.RED, Color.BLUE, Color.YELLOW, Color.MAGENTA)
         }
@@ -170,7 +160,7 @@ class DashboardFragment : Fragment() {
         // Income Pie Chart
         val incomeEntries = transactions.filter { !it.isExpense }
             .groupBy { it.category }
-            .map { PieEntry(it.value.sumOf { transaction -> transaction.amount }.toFloat(), it.key) }
+            .map { PieEntry(it.value.sumOf { transaction -> transaction.amount }.toFloat(), "${it.key} ($currency)") }
         val incomeDataSet = PieDataSet(incomeEntries, "Income by Category").apply {
             colors = listOf(Color.GREEN, Color.CYAN, Color.LTGRAY, Color.DKGRAY)
         }

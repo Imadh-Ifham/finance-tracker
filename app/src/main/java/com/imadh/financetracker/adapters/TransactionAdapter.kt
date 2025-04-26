@@ -9,6 +9,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.imadh.financetracker.R
 import com.imadh.financetracker.models.Transaction
+import com.imadh.financetracker.utils.SharedPreferencesManager
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -71,61 +72,51 @@ class TransactionAdapter(
         private val tvTransactionAmount: TextView = itemView.findViewById(R.id.tv_transaction_amount)
 
         fun bind(transaction: Transaction) {
-            android.util.Log.d("TransactionAdapter", "Binding transaction: $transaction")
+
+            // Get the preferred currency from SharedPreferences
+            val sharedPreferencesManager = SharedPreferencesManager(itemView.context)
+            val currency = sharedPreferencesManager.getCurrency()
 
             // Set title
-            android.util.Log.d("TransactionAdapter", "Setting title: ${transaction.title}")
             tvTransactionTitle.text = transaction.title
 
             // Set category
-            android.util.Log.d("TransactionAdapter", "Setting category: ${transaction.category}")
             tvTransactionCategory.text = transaction.category
 
             // Set formatted date
             val formattedDate = dateFormatter.format(transaction.date)
-            android.util.Log.d("TransactionAdapter", "Formatted date: $formattedDate")
             tvTransactionDate.text = formattedDate
 
-            // Format amount
-            android.util.Log.d("TransactionAdapter", "Formatting amount: ${transaction.amount}")
-            val formattedAmount = currencyFormatter.format(transaction.amount)
+            // Format the amount with the currency symbol
             val amountText = if (transaction.isExpense) {
-                "-$formattedAmount"
+                "-$currency${transaction.amount}"
             } else {
-                "+$formattedAmount"
+                "+$currency${transaction.amount}"
             }
-            android.util.Log.d("TransactionAdapter", "Formatted amount text: $amountText")
             tvTransactionAmount.text = amountText
 
-            // Set text color based on transaction type
             val textColor = if (transaction.isExpense) {
-                android.util.Log.d("TransactionAdapter", "Transaction is Expense, setting expense color")
                 itemView.context.getColor(R.color.expense_color) // Red for Expenses
             } else {
-                android.util.Log.d("TransactionAdapter", "Transaction is Income, setting income color")
                 itemView.context.getColor(R.color.income_color) // Green for Income
             }
             tvTransactionAmount.setTextColor(textColor)
 
             // Set category icon
             val iconResId = getCategoryIcon(transaction.category, transaction.isExpense)
-            android.util.Log.d("TransactionAdapter", "Setting category icon for '${transaction.category}' with resource ID: $iconResId")
             ivCategoryIcon.setImageResource(iconResId)
 
             // Set click listener
             itemView.setOnClickListener {
-                android.util.Log.d("TransactionAdapter", "Item clicked: ${transaction.title}")
                 onItemClick(transaction)
             }
 
             // Set long click listener
             itemView.setOnLongClickListener {
-                android.util.Log.d("TransactionAdapter", "Item long clicked: ${transaction.title}")
                 onItemLongClickListener?.invoke(transaction)
                 true
             }
 
-            android.util.Log.d("TransactionAdapter", "Finished binding transaction: ${transaction.title}")
         }
 
 

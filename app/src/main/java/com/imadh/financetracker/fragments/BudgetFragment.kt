@@ -58,15 +58,16 @@ class BudgetFragment : Fragment() {
         val budget = sharedPreferencesManager.getCurrentMonthBudget()
         val totalIncome = sharedPreferencesManager.getTotalIncome(month, year)
         val totalExpense = sharedPreferencesManager.getTotalExpense(month, year)
+        val currency = sharedPreferencesManager.getCurrency()
 
         if (budget != null) {
             val percentSpent = budget.getPercentSpent(totalExpense)
             val remaining = budget.getRemainingBudget(totalExpense)
 
             // Update UI
-            binding.tvBudgetAmount.text = "$${budget.amount}"
+            binding.tvBudgetAmount.text = "${currency}${budget.amount}"
             binding.tvBudgetStatus.text =
-                "$${totalExpense} of $${budget.amount} (${percentSpent.toInt()}%)"
+                "${currency}${totalExpense} of ${currency}${budget.amount} (${percentSpent.toInt()}%)"
             binding.progressBudget.progress = percentSpent.toInt()
 
             // Update the PieChart

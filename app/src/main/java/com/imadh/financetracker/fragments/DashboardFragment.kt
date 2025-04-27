@@ -116,12 +116,10 @@ class DashboardFragment : Fragment() {
     }
 
     private fun populateBarChart(transactions: List<Transaction>, currency: String) {
-        // Get the current month and year
         val calendar = java.util.Calendar.getInstance()
-        val currentMonth = calendar.get(java.util.Calendar.MONTH) + 1 // Months are 0-indexed
+        val currentMonth = calendar.get(java.util.Calendar.MONTH) + 1
         val currentYear = calendar.get(java.util.Calendar.YEAR)
 
-        // Filter transactions for the current month
         val incomeForCurrentMonth = transactions.filter { transaction ->
             calendar.time = transaction.date
             val transactionMonth = calendar.get(java.util.Calendar.MONTH) + 1
@@ -136,49 +134,63 @@ class DashboardFragment : Fragment() {
             transaction.isExpense && transactionMonth == currentMonth && transactionYear == currentYear
         }.sumOf { it.amount }
 
-        // Create BarEntries for income and expense
-        val barEntriesIncome = listOf(BarEntry(0f, incomeForCurrentMonth.toFloat())) // x = 0
-        val barEntriesExpense = listOf(BarEntry(1f, expenseForCurrentMonth.toFloat())) // x = 1
+        val barEntriesIncome = listOf(BarEntry(0f, incomeForCurrentMonth.toFloat()))
+        val barEntriesExpense = listOf(BarEntry(1f, expenseForCurrentMonth.toFloat()))
 
-        // Create datasets
         val incomeDataSet = BarDataSet(barEntriesIncome, "Income ($currency)").apply {
-            color = Color.GREEN
+            color = Color.parseColor("#4CAF50") // Light Green
+            valueTextColor = Color.WHITE // Value color inside bar
+            valueTextSize = 12f
         }
         val expenseDataSet = BarDataSet(barEntriesExpense, "Expense ($currency)").apply {
-            color = Color.RED
+            color = Color.parseColor("#F44336") // Light Red
+            valueTextColor = Color.WHITE
+            valueTextSize = 12f
         }
 
-        // Combine datasets into BarData
         val barData = BarData(incomeDataSet, expenseDataSet)
-        barData.barWidth = 0.4f // Set the bar width
+        barData.barWidth = 0.4f
 
         // Configure BarChart
         barChart.data = barData
+        barChart.setBackgroundColor(Color.parseColor("#121212")) // Dark background
+        barChart.setDrawGridBackground(false)
+        barChart.setDrawBorders(false)
+
         barChart.xAxis.apply {
-            granularity = 1f // Ensure the x-axis labels are evenly spaced
+            granularity = 1f
             isGranularityEnabled = true
-            setCenterAxisLabels(true) // Enable center alignment for grouped bars
-            position = XAxis.XAxisPosition.BOTTOM // Place labels at the bottom
-            axisMinimum = -0.5f // Start slightly before the first bar
-            axisMaximum = 1.5f // End slightly after the second bar
+            setCenterAxisLabels(true)
+            position = XAxis.XAxisPosition.BOTTOM
+            axisMinimum = -0.5f
+            axisMaximum = 1.5f
+            textColor = Color.WHITE // X Axis text
+            gridColor = Color.GRAY // Light grid lines or disable
+            setDrawGridLines(false) // optional: cleaner without grid
         }
 
-        // Configure the Y-axis to start at 0
         barChart.axisLeft.apply {
-            axisMinimum = 0f // Force the Y-axis to start at 0
+            axisMinimum = 0f
+            textColor = Color.WHITE
+            gridColor = Color.GRAY
+            setDrawGridLines(true)
         }
-        barChart.axisRight.isEnabled = false // Disable the right Y-axis
 
-        // Group bars and adjust spacing
-        barChart.groupBars(-0.5f, 0.4f, 0.1f) // (startX, groupSpace, barSpace)
+        barChart.axisRight.isEnabled = false
 
-        // Set chart description and refresh
+        barChart.legend.textColor = Color.WHITE // Legend text color
+
+        barChart.groupBars(-0.5f, 0.4f, 0.1f)
+
         barChart.description = Description().apply {
             text = "Income vs Expense for Current Month"
-            textColor = Color.BLACK
+            textColor = Color.WHITE
+            textSize = 12f
         }
-        barChart.invalidate() // Refresh chart
+
+        barChart.invalidate()
     }
+
 
     override fun onDestroyView() {
         super.onDestroyView()

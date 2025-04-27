@@ -2,8 +2,20 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="purple_500">#9C27B0</color>#E0E0E0
+    <color name="purple_500">#9C27B0</color>
     <color name="gray_light">#E0E0E0</color>
+    <color name="gray_dark">#424242</color>
     <color name="expense_color">#F44336</color> <!-- Red -->
     <color name="income_color">#4CAF50</color> <!-- Green -->
+
+    <color name="my_light_primary">#7E57C2</color> <!-- Soft, smooth purple -->
+    <color name="my_light_onPrimary">#FFFFFF</color> <!-- Text on purple -->
+    <color name="my_light_background">#F3F2F7</color> <!-- Light background -->
+    <color name="my_light_surface">#FFFFFF</color> <!-- Card backgrounds -->
+
+    <color name="my_dark_primary">#B39DDB</color> <!-- Softer purple for dark -->
+    <color name="my_dark_onPrimary">#1A1A1A</color> <!-- Dark text if needed -->
+    <color name="my_dark_background">#121212</color> <!-- Dark background -->
+    <color name="my_dark_surface">#1E1E1E</color> <!-- Cards and sections -->
+
 </resources>

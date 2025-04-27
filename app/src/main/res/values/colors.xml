@@ -5,8 +5,8 @@
     <color name="purple_500">#9C27B0</color>
     <color name="gray_light">#E0E0E0</color>
     <color name="gray_dark">#424242</color>
-    <color name="expense_color">#F44336</color> <!-- Red -->
-    <color name="income_color">#4CAF50</color> <!-- Green -->
+    <color name="expense_color">#E57373</color> <!-- Softer Red -->
+    <color name="income_color">#81C784</color> <!-- Softer Green -->
 
     <color name="my_light_primary">#7E57C2</color> <!-- Soft, smooth purple -->
     <color name="my_light_onPrimary">#FFFFFF</color> <!-- Text on purple -->

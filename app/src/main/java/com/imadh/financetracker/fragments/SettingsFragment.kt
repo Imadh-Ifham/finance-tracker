@@ -1,11 +1,13 @@
 package com.imadh.financetracker.fragments
 
+import android.app.AlertDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.AdapterView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.imadh.financetracker.R
 import com.imadh.financetracker.databinding.FragmentSettingsBinding
@@ -31,6 +33,21 @@ class SettingsFragment : Fragment() {
 
         // Initialize SharedPreferencesManager
         sharedPreferencesManager = SharedPreferencesManager(requireContext())
+
+        // Set up Backup button
+        binding.btnBackup.setOnClickListener {
+            showBackupConfirmationDialog()
+        }
+
+        // Set up Restore button
+        binding.btnRestore.setOnClickListener {
+            showRestoreConfirmationDialog()
+        }
+
+        // Set up Restore button
+        binding.btnResetBackup.setOnClickListener {
+            showResetBackupConfirmationDialog()
+        }
 
         // Populate the Currency Spinner
         setupCurrencySpinner()
@@ -70,6 +87,55 @@ class SettingsFragment : Fragment() {
                 // Do nothing
             }
         }
+    }
+
+    private fun showBackupConfirmationDialog() {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Confirm Backup")
+            .setMessage("Do you want to back up your transactions?")
+            .setPositiveButton("Yes") { _, _ ->
+                val success = sharedPreferencesManager.backupTransactionsToFile(requireContext())
+                if (success) {
+                    Toast.makeText(requireContext(), "Backup successful", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(requireContext(), "Backup failed", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("No", null)
+            .show()
+    }
+
+    private fun showRestoreConfirmationDialog() {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Confirm Restore")
+            .setMessage("Do you want to restore your transactions from the backup?")
+            .setPositiveButton("Yes") { _, _ ->
+                val success = sharedPreferencesManager.restoreTransactionsFromFile(requireContext())
+                if (success) {
+                    Toast.makeText(requireContext(), "Restore successful", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(requireContext(), "Restore failed", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("No", null)
+            .show()
+    }
+
+    private fun showResetBackupConfirmationDialog() {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Warning: Reset Backup")
+            .setMessage("This action will permanently delete your backup. Are you sure you want to proceed?")
+            .setIcon(android.R.drawable.ic_dialog_alert) // Warning icon
+            .setPositiveButton("Yes") { _, _ ->
+                val success = sharedPreferencesManager.resetBackup(requireContext())
+                if (success) {
+                    Toast.makeText(requireContext(), "Backup reset successfully", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(requireContext(), "Failed to reset backup", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("No", null)
+            .show()
     }
 
     override fun onDestroyView() {

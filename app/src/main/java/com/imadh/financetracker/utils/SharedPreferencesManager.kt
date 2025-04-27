@@ -8,6 +8,10 @@ import com.google.gson.reflect.TypeToken
 import com.imadh.financetracker.models.Budget
 import com.imadh.financetracker.models.Transaction
 import com.imadh.financetracker.notifications.NotificationHelper
+import java.io.File
+import java.io.FileReader
+import java.io.FileWriter
+import java.io.IOException
 import java.util.*
 
 class SharedPreferencesManager(context: Context) {
@@ -19,6 +23,8 @@ class SharedPreferencesManager(context: Context) {
         private const val KEY_CURRENCY = "currency"
         private const val KEY_BUDGET_NOTIFICATIONS = "budget_notifications"
         private const val KEY_DAILY_REMINDER = "daily_reminder"
+        private const val BACKUP_DIR = "backup/transactions"
+        private const val BACKUP_FILE_NAME = "transactions_backup.json"
     }
 
     private val sharedPreferences: SharedPreferences = context.getSharedPreferences(
@@ -207,11 +213,62 @@ class SharedPreferencesManager(context: Context) {
 
     // Backup Methods
 
-    fun getTransactionsJson(): String {
-        return sharedPreferences.getString(KEY_TRANSACTIONS, "[]") ?: "[]"
+    /**
+     * Backup transactions to a JSON file in internal storage.
+     */
+    fun backupTransactionsToFile(context: Context): Boolean {
+        val transactions = getTransactions()
+        val json = gson.toJson(transactions)
+
+        val backupDir = File(context.filesDir, BACKUP_DIR)
+        if (!backupDir.exists()) {
+            backupDir.mkdirs() // Create the directory if it doesn't exist
+        }
+
+        val backupFile = File(backupDir, BACKUP_FILE_NAME)
+        return try {
+            FileWriter(backupFile).use { it.write(json) }
+            true // Indicate success
+        } catch (e: IOException) {
+            Log.e("Backup", "Failed to backup transactions", e)
+            false // Indicate failure
+        }
     }
 
-    fun restoreTransactionsFromJson(json: String) {
-        sharedPreferences.edit().putString(KEY_TRANSACTIONS, json).apply()
+    /**
+     * Restore transactions from the backup JSON file in internal storage.
+     */
+    fun restoreTransactionsFromFile(context: Context): Boolean {
+        val backupFile = File(context.filesDir, "$BACKUP_DIR/$BACKUP_FILE_NAME")
+        if (!backupFile.exists()) {
+            Log.e("Restore", "Backup file not found")
+            return false // Indicate failure
+        }
+
+        return try {
+            val type = object : TypeToken<List<Transaction>>() {}.type
+            val restoredTransactions: List<Transaction> = FileReader(backupFile).use { gson.fromJson(it, type) }
+            val existingTransactions = getTransactions().toMutableList()
+
+            // Merge transactions without duplicates
+            val mergedTransactions = (restoredTransactions + existingTransactions)
+                .distinctBy { it.id } // Ensure uniqueness by ID
+                .sortedByDescending { it.date } // Sort by date (descending)
+
+            saveTransactions(mergedTransactions) // Save merged transactions back to SharedPreferences
+            true // Indicate success
+        } catch (e: IOException) {
+            Log.e("Restore", "Failed to restore transactions", e)
+            false // Indicate failure
+        }
+    }
+
+    fun resetBackup(context: Context): Boolean {
+        val backupFile = File(context.filesDir, "$BACKUP_DIR/$BACKUP_FILE_NAME")
+        return if (backupFile.exists()) {
+            backupFile.delete() // Delete the file
+        } else {
+            false // File does not exist
+        }
     }
 }

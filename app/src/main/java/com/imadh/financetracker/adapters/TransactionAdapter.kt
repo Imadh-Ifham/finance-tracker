@@ -43,15 +43,17 @@ class TransactionAdapter(
     override fun getItemCount(): Int = transactions.size
 
     fun updateTransactions(newTransactions: List<Transaction>) {
-        this.transactions = newTransactions
+        this.transactions = newTransactions.sortedByDescending { it.date }
         notifyDataSetChanged()
     }
 
     fun updateTransaction(updatedTransaction: Transaction) {
         val index = transactions.indexOfFirst { it.id == updatedTransaction.id }
         if (index != -1) {
-            transactions = transactions.toMutableList().apply { this[index] = updatedTransaction }
-            notifyItemChanged(index)
+            val updatedList = transactions.toMutableList()
+            updatedList[index] = updatedTransaction
+            transactions = updatedList.sortedByDescending { it.date }
+            notifyDataSetChanged()
         }
     }
 

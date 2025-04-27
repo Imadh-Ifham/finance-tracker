@@ -74,6 +74,18 @@ class SharedPreferencesManager(context: Context) {
             calendar.get(Calendar.MONTH) == month && calendar.get(Calendar.YEAR) == year
         }
     }
+    fun getTransactionsForCurrentMonth(): List<Transaction> {
+        val calendar = Calendar.getInstance()
+        val currentMonth = calendar.get(Calendar.MONTH)
+        val currentYear = calendar.get(Calendar.YEAR)
+
+        return getTransactions().filter { transaction ->
+            calendar.time = transaction.date
+            val transactionMonth = calendar.get(Calendar.MONTH)
+            val transactionYear = calendar.get(Calendar.YEAR)
+            transactionMonth == currentMonth && transactionYear == currentYear
+        }
+    }
 
     // Budget Methods
 

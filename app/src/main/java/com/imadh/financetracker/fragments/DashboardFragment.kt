@@ -6,17 +6,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.github.mikephil.charting.charts.BarChart
-import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.components.Description
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
-import com.github.mikephil.charting.data.PieData
-import com.github.mikephil.charting.data.PieDataSet
-import com.github.mikephil.charting.data.PieEntry
+import com.imadh.financetracker.adapters.CategoryBreakdownAdapter
 import com.imadh.financetracker.databinding.FragmentDashboardBinding
+import com.imadh.financetracker.models.CategoryBreakdown
 import com.imadh.financetracker.models.Transaction
 import com.imadh.financetracker.utils.SharedPreferencesManager
 
@@ -27,8 +26,9 @@ class DashboardFragment : Fragment() {
 
     private lateinit var sharedPreferencesManager: SharedPreferencesManager
     private lateinit var barChart: BarChart
-    private lateinit var expensePieChart: PieChart
-    private lateinit var incomePieChart: PieChart
+
+    private lateinit var expenseAdapter: CategoryBreakdownAdapter
+    private lateinit var incomeAdapter: CategoryBreakdownAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -47,24 +47,40 @@ class DashboardFragment : Fragment() {
 
         // Setup UI components
         setupUI()
+        // Setup RecyclerViews
+        setupRecyclerViews()
         loadDashboardData()
     }
 
+    private fun setupRecyclerViews() {
+        // Setup Expense Breakdown RecyclerView
+        expenseAdapter = CategoryBreakdownAdapter(sharedPreferencesManager)
+        binding.rvExpenseBreakdown.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = expenseAdapter
+        }
+
+        // Setup Income Breakdown RecyclerView
+        incomeAdapter = CategoryBreakdownAdapter(sharedPreferencesManager)
+        binding.rvIncomeBreakdown.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = incomeAdapter
+        }
+    }
     private fun setupUI() {
         barChart = binding.barChartIncomeVsExpense
-        expensePieChart = binding.pieChartExpense
-        incomePieChart = binding.pieChartIncome
     }
 
     private fun loadDashboardData() {
-        val transactions = sharedPreferencesManager.getTransactions()
+        // Filter transactions for the current month and year
+        val currentMonthTransactions = sharedPreferencesManager.getTransactionsForCurrentMonth()
 
-        // Fetch selected currency
+        // Fetch the selected currency
         val currency = sharedPreferencesManager.getCurrency()
 
-        // Calculate income, expense, and cash in hand
-        val income = transactions.filter { !it.isExpense }.sumOf { it.amount }
-        val expense = transactions.filter { it.isExpense }.sumOf { it.amount }
+        // Calculate income, expense, and cash in hand for the current month
+        val income = currentMonthTransactions.filter { !it.isExpense }.sumOf { it.amount }
+        val expense = currentMonthTransactions.filter { it.isExpense }.sumOf { it.amount }
         val cashInHand = income - expense
 
         // Display income, expense, and cash in hand with selected currency
@@ -72,9 +88,31 @@ class DashboardFragment : Fragment() {
         binding.tvIncomeValue.text = "$currency$income"
         binding.tvExpenseValue.text = "$currency$expense"
 
-        // Populate charts
-        populateBarChart(transactions, currency)
-        populatePieCharts(transactions, currency)
+        // Populate the bar chart
+        populateBarChart(currentMonthTransactions, currency)
+
+        // Populate Expense Breakdown RecyclerView
+        val expenseBreakdown = calculateCategoryBreakdown(currentMonthTransactions.filter { it.isExpense }, expense)
+        expenseAdapter.submitList(expenseBreakdown)
+
+        // Populate Income Breakdown RecyclerView
+        val incomeBreakdown = calculateCategoryBreakdown(currentMonthTransactions.filter { !it.isExpense }, income)
+        incomeAdapter.submitList(incomeBreakdown)
+    }
+
+    private fun calculateCategoryBreakdown(transactions: List<Transaction>, totalAmount: Double): List<CategoryBreakdown> {
+        return transactions
+            .groupBy { it.category }
+            .map { (category, transactionsInCategory) ->
+                val categoryTotal = transactionsInCategory.sumOf { it.amount }
+                val percentage = if (totalAmount > 0) (categoryTotal / totalAmount) * 100 else 0.0
+                CategoryBreakdown(
+                    category = category,
+                    amount = categoryTotal,
+                    percentage = percentage
+                )
+            }
+            .filter { it.amount > 0 } // Exclude categories with zero amounts
     }
 
     private fun populateBarChart(transactions: List<Transaction>, currency: String) {
@@ -140,36 +178,6 @@ class DashboardFragment : Fragment() {
             textColor = Color.BLACK
         }
         barChart.invalidate() // Refresh chart
-    }
-
-    private fun populatePieCharts(transactions: List<Transaction>, currency: String) {
-        // Expense Pie Chart
-        val expenseEntries = transactions.filter { it.isExpense }
-            .groupBy { it.category }
-            .map { PieEntry(it.value.sumOf { transaction -> transaction.amount }.toFloat(), "${it.key} ($currency)") }
-        val expenseDataSet = PieDataSet(expenseEntries, "Expenses by Category").apply {
-            colors = listOf(Color.RED, Color.BLUE, Color.YELLOW, Color.MAGENTA)
-        }
-        expensePieChart.data = PieData(expenseDataSet)
-        expensePieChart.description = Description().apply {
-            text = "Expense Breakdown"
-            textColor = Color.BLACK
-        }
-        expensePieChart.invalidate()
-
-        // Income Pie Chart
-        val incomeEntries = transactions.filter { !it.isExpense }
-            .groupBy { it.category }
-            .map { PieEntry(it.value.sumOf { transaction -> transaction.amount }.toFloat(), "${it.key} ($currency)") }
-        val incomeDataSet = PieDataSet(incomeEntries, "Income by Category").apply {
-            colors = listOf(Color.GREEN, Color.CYAN, Color.LTGRAY, Color.DKGRAY)
-        }
-        incomePieChart.data = PieData(incomeDataSet)
-        incomePieChart.description = Description().apply {
-            text = "Income Breakdown"
-            textColor = Color.BLACK
-        }
-        incomePieChart.invalidate()
     }
 
     override fun onDestroyView() {

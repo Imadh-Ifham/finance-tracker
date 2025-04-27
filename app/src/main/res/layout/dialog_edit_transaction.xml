@@ -46,6 +46,35 @@
                     android:inputType="numberDecimal" />
             </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- Expense / Income Radio Buttons -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Transaction Type"
+                android:textStyle="bold"
+                android:layout_marginTop="16dp" />
+
+            <RadioGroup
+                android:id="@+id/radioGroupTransactionType"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="6dp">
+
+                <RadioButton
+                    android:id="@+id/radioExpense"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Expense"
+                    android:checked="true" />
+
+                <RadioButton
+                    android:id="@+id/radioIncome"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Income" />
+            </RadioGroup>
+
             <!-- Category Spinner -->
             <TextView
                 android:layout_width="wrap_content"
@@ -80,35 +109,6 @@
                     android:drawableRight="@drawable/ic_calendar"
                     android:inputType="none" />
             </com.google.android.material.textfield.TextInputLayout>
-
-            <!-- Expense / Income Radio Buttons -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Transaction Type"
-                android:textStyle="bold"
-                android:layout_marginTop="16dp" />
-
-            <RadioGroup
-                android:id="@+id/radioGroupTransactionType"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="6dp">
-
-                <RadioButton
-                    android:id="@+id/radioExpense"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Expense"
-                    android:checked="true" />
-
-                <RadioButton
-                    android:id="@+id/radioIncome"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Income" />
-            </RadioGroup>
 
             <!-- Save and Cancel Buttons -->
             <LinearLayout
